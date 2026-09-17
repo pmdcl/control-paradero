@@ -2,822 +2,243 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-
 <title>Control de Paradero</title>
-
 <style>
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#f1f5f9;
-  color:#0f172a;
-}
-
-.header{
-  background:#0f172a;
-  color:white;
-  padding:20px 15px;
-  text-align:center;
-}
-
-.header h1{
-  margin:0;
-  font-size:22px;
-}
-
-.header p{
-  margin:5px 0 0;
-  color:#cbd5e1;
-  font-size:13px;
-}
-
-.container{
-  width:100%;
-  max-width:520px;
-  margin:auto;
-  padding:16px;
-}
-
-.card{
-  background:white;
-  border-radius:16px;
-  padding:18px;
-  box-shadow:0 3px 12px rgba(0,0,0,.08);
-  margin-bottom:15px;
-}
-
-.titulo{
-  font-size:20px;
-  font-weight:800;
-  margin-bottom:6px;
-}
-
-.texto{
-  color:#64748b;
-  font-size:14px;
-  line-height:1.5;
-  margin-bottom:18px;
-}
-
-label{
-  display:block;
-  font-size:13px;
-  font-weight:700;
-  margin:14px 0 6px;
-}
-
-select,
-input{
-  width:100%;
-  padding:14px;
-  border-radius:10px;
-  border:1px solid #cbd5e1;
-  background:white;
-  font-size:17px;
-}
-
-input{
-  text-align:center;
-  font-size:22px;
-  letter-spacing:5px;
-}
-
-button{
-  width:100%;
-  border:none;
-  border-radius:11px;
-  padding:14px;
-  margin-top:18px;
-  background:#2563eb;
-  color:white;
-  font-size:17px;
-  font-weight:800;
-  cursor:pointer;
-}
-
-button:disabled{
-  opacity:.55;
-}
-
-.mensaje{
-  display:none;
-  margin-top:15px;
-  padding:12px;
-  border-radius:10px;
-  font-size:14px;
-  line-height:1.4;
-}
-
-.correcto{
-  display:block;
-  background:#dcfce7;
-  color:#166534;
-}
-
-.error{
-  display:block;
-  background:#fee2e2;
-  color:#991b1b;
-}
-
-.cargando{
-  display:block;
-  background:#e0f2fe;
-  color:#075985;
-}
-
-.usuario{
-  display:none;
-}
-
-.usuario-activo{
-  display:block;
-}
-
-.rol-badge{
-  display:inline-block;
-  background:#ede9fe;
-  color:#5b21b6;
-  font-size:12px;
-  font-weight:800;
-  padding:5px 9px;
-  border-radius:20px;
-  margin-bottom:10px;
-}
-
-.nombre-usuario{
-  font-size:23px;
-  font-weight:900;
-  margin-bottom:5px;
-}
-
-.estado{
-  color:#166534;
-  font-size:14px;
-  font-weight:700;
-}
-
-.admin-info{
-  margin-top:18px;
-  padding:13px;
-  border-radius:10px;
-  background:#f8fafc;
-  color:#475569;
-  font-size:13px;
-  line-height:1.5;
-}
-
-.secundario{
-  background:#475569;
-}
-
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:#0f172a}
+header{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:13px 14px;box-shadow:0 2px 8px #0003}
+.top{max-width:680px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-weight:900;font-size:18px}.who{font-size:11px;color:#cbd5e1;margin-top:3px}
+.conn{font-size:11px;font-weight:700;text-align:right}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:5px}.dot.bad{background:#ef4444}
+main{max-width:680px;margin:auto;padding:12px 12px 88px}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+button{border:0;border-radius:11px;padding:12px 10px;font-weight:800;font-size:14px;cursor:pointer}button:disabled{opacity:.45}
+.primary{background:#2563eb;color:#fff}.dark{background:#334155;color:#fff}.danger{background:#dc2626;color:#fff}.soft{background:#e2e8f0;color:#0f172a}.green{background:#16a34a;color:#fff}
+.card{background:#fff;border-radius:15px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px #00000012}
+.ch{padding:12px 13px;font-weight:900;display:flex;justify-content:space-between;align-items:center}.ch.greenh{background:#bbf7d0;color:#14532d}.ch.yellowh{background:#fef08a;color:#713f12}.ch.redh{background:#fecaca;color:#7f1d1d}.ch.purpleh{background:#ddd6fe;color:#4c1d95}
+.count{background:#ffffffaa;padding:3px 8px;border-radius:20px;font-size:12px}.list{padding:7px 10px 10px}
+.row{display:flex;align-items:center;gap:8px;min-height:56px;border-bottom:1px solid #e2e8f0;padding:6px 2px}.row:last-child{border-bottom:0}
+.row.selected{outline:2px solid #2563eb;border-radius:10px;background:#eff6ff}.check{width:23px;height:23px;accent-color:#2563eb}
+.pos{width:34px;text-align:center;font-weight:900;color:#64748b}.name{font-size:18px;font-weight:900;flex:1}.time{font-size:12px;color:#64748b}
+.moves{display:flex;gap:4px}.mini{padding:8px 9px;border-radius:8px;background:#e2e8f0;color:#0f172a;font-size:16px}
+.empty{text-align:center;color:#94a3b8;padding:20px 8px;font-size:14px}
+.actions{display:none;position:sticky;bottom:10px;z-index:15;background:#0f172a;border-radius:15px;padding:10px;box-shadow:0 5px 18px #0005;grid-template-columns:1fr 1fr;gap:7px}.actions.show{display:grid}.actions .wide{grid-column:1/-1}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:50;padding:18px;align-items:center;justify-content:center}.modal.show{display:flex}.box{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:430px;max-height:85vh;overflow:auto}
+.box h2{margin:0 0 12px;font-size:20px}.box select,.box input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:17px;margin:7px 0}
+.msg{display:none;padding:10px 12px;border-radius:10px;margin-bottom:10px;font-size:13px}.msg.show{display:block}.ok{background:#dcfce7;color:#166534}.err{background:#fee2e2;color:#991b1b}.info{background:#e0f2fe;color:#075985}
+.access{padding:10px 0;border-bottom:1px solid #e2e8f0}.access:last-child{border:0}.access b{display:block}.access small{color:#64748b}.access button{margin-top:7px;padding:8px 10px}
+.adminonly{display:none}.adminonly.show{display:block}
+.dragging{opacity:.45}.dragover{outline:2px dashed #2563eb;border-radius:10px}
 </style>
 </head>
-
 <body>
+<header><div class="top"><div><div class="brand">🚐 CONTROL DE PARADERO</div><div class="who" id="who">Comprobando acceso…</div></div><div class="conn"><div><span id="dot" class="dot"></span><span id="conn">Conectando…</span></div><div id="updated">--</div></div></div></header>
 
-<header class="header">
+<main>
+<div id="msg" class="msg"></div>
 
-  <h1>🚐 CONTROL DE PARADERO</h1>
+<div class="toolbar">
+  <button class="primary" onclick="abrirAgregar()">＋ AGREGAR MÓVIL</button>
+  <button class="dark" onclick="deshacer()">↶ DESHACER</button>
+</div>
 
-  <p id="subtitulo">
-    Acceso autorizado
-  </p>
+<div class="card">
+ <div class="ch greenh"><span>🟢 PARADERO / SALIDA</span><span class="count" id="cp">0</span></div>
+ <div class="list" id="paradero"></div>
+</div>
 
-</header>
+<div class="card">
+ <div class="ch yellowh"><span>🟡 EN ESPERA</span><span class="count" id="ce">0</span></div>
+ <div class="list" id="espera"></div>
+</div>
 
+<div class="card">
+ <div class="ch redh"><span>🔴 ÚLTIMAS SALIDAS</span><span class="count">últimas 3</span></div>
+ <div class="list" id="salidas"></div>
+</div>
 
-<main class="container">
+<div id="adminCard" class="card adminonly">
+ <div class="ch purpleh"><span>🛡️ ADMINISTRACIÓN</span><span class="count">accesos</span></div>
+ <div class="list">
+   <button class="soft" style="width:100%" onclick="abrirAccesos()">GESTIONAR DISPOSITIVOS</button>
+ </div>
+</div>
 
-  <!-- LOGIN -->
-
-  <div
-    id="login"
-    class="card"
-  >
-
-    <div class="titulo">
-      🔐 Autorizar dispositivo
-    </div>
-
-    <div class="texto">
-      Selecciona el tipo de acceso de este
-      dispositivo. Esta autorización quedará
-      guardada en este navegador.
-    </div>
-
-
-    <label>
-      Tipo de acceso
-    </label>
-
-    <select id="rol">
-
-      <option value="">
-        Seleccionar...
-      </option>
-
-      <option value="ADMINISTRADOR">
-        Administrador
-      </option>
-
-      <option value="COORDINADOR_1">
-        Coordinador 1
-      </option>
-
-      <option value="COORDINADOR_2">
-        Coordinador 2
-      </option>
-
-    </select>
-
-
-    <label>
-      PIN
-    </label>
-
-    <input
-      id="pin"
-      type="password"
-      inputmode="numeric"
-      maxlength="6"
-      placeholder="••••••"
-      autocomplete="off"
-    >
-
-
-    <button
-      id="botonAutorizar"
-      onclick="autorizar()"
-    >
-      AUTORIZAR ESTE DISPOSITIVO
-    </button>
-
-
-    <div
-      id="mensajeLogin"
-      class="mensaje"
-    ></div>
-
-  </div>
-
-
-  <!-- DISPOSITIVO AUTORIZADO -->
-
-  <div
-    id="usuario"
-    class="card usuario"
-  >
-
-    <div
-      id="badge"
-      class="rol-badge"
-    >
-      ACCESO
-    </div>
-
-    <div
-      id="nombreUsuario"
-      class="nombre-usuario"
-    >
-      --
-    </div>
-
-    <div class="estado">
-      ● Dispositivo autorizado
-    </div>
-
-
-    <div
-      id="adminInfo"
-      class="admin-info"
-      style="display:none"
-    >
-      🛡️ Este dispositivo tiene permisos de
-      administrador. Podrá operar el paradero
-      y gestionar los dispositivos autorizados.
-    </div>
-
-
-    <button
-      class="secundario"
-      onclick="cerrarSesionLocal()"
-    >
-      CAMBIAR ACCESO EN ESTE DISPOSITIVO
-    </button>
-
-  </div>
-
-
-  <div
-    id="mensajeGeneral"
-    class="mensaje"
-  ></div>
-
+<div id="actions" class="actions">
+ <button id="toParadero" class="green" onclick="pasarParadero()">PASAR A PARADERO</button>
+ <button id="salir" class="primary" onclick="registrarSalida()">REGISTRAR SALIDA</button>
+ <button class="danger wide" onclick="retirar()">RETIRAR DEL SERVICIO</button>
+ <button class="soft wide" onclick="limpiarSeleccion()">CANCELAR SELECCIÓN</button>
+</div>
 </main>
 
+<div id="modalAdd" class="modal"><div class="box">
+ <h2>＋ Agregar móvil</h2>
+ <div id="addMsg" class="msg"></div>
+ <select id="movilSelect"></select>
+ <button class="primary" style="width:100%" onclick="agregar()">AGREGAR A ESPERA</button>
+ <button class="soft" style="width:100%;margin-top:8px" onclick="cerrar('modalAdd')">CANCELAR</button>
+</div></div>
+
+<div id="modalAccess" class="modal"><div class="box">
+ <h2>🛡️ Dispositivos autorizados</h2>
+ <div id="accessMsg" class="msg"></div>
+ <div id="accessList"></div>
+ <hr style="border:0;border-top:1px solid #e2e8f0;margin:15px 0">
+ <button class="danger" style="width:100%" onclick="revocarRol('COORDINADOR_1')">REVOCAR TODOS — COORDINADOR 1</button>
+ <button class="danger" style="width:100%;margin-top:8px" onclick="revocarRol('COORDINADOR_2')">REVOCAR TODOS — COORDINADOR 2</button>
+ <button class="soft" style="width:100%;margin-top:8px" onclick="cerrar('modalAccess')">CERRAR</button>
+</div></div>
 
 <script>
+const API="https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
+const KT="controlParaderoTokenV2", KR="controlParaderoRolV2", KN="controlParaderoNombreV2";
+let token=localStorage.getItem(KT), rol="", nombre="", esAdmin=false;
+let estado={paradero:[],espera:[],salidas:[]};
+let seleccion=new Map(); // movil -> ESPERA/PARADERO
+let busy=false;
 
-const API =
-"https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
-
-
-const CLAVE_TOKEN =
-  "controlParaderoTokenV2";
-
-
-const CLAVE_NOMBRE =
-  "controlParaderoNombreV2";
-
-
-const CLAVE_ROL =
-  "controlParaderoRolV2";
-
-
-// =====================================================
-// INICIO
-// =====================================================
-
-window.addEventListener(
-  "load",
-  iniciar
-);
-
+window.addEventListener("load", iniciar);
 
 async function iniciar(){
-
-  const token =
-    localStorage.getItem(
-      CLAVE_TOKEN
-    );
-
-
-  if(!token){
-
-    mostrarLogin();
-
-    return;
-  }
-
-
-  mostrarGeneral(
-    "Comprobando autorización...",
-    "cargando"
-  );
-
-
-  try{
-
-    const resultado =
-      await enviar({
-        accion:"validar",
-        token:token
-      });
-
-
-    if(!resultado.ok){
-
-      limpiarAutorizacion();
-
-      mostrarLogin();
-
-      mostrarLoginMensaje(
-        "La autorización anterior ya no es válida. Ingresa nuevamente.",
-        "error"
-      );
-
-      ocultarGeneral();
-
-      return;
-    }
-
-
-    guardarSesion(
-      token,
-      resultado.rol,
-      resultado.nombre
-    );
-
-
-    mostrarUsuario(
-      resultado.rol,
-      resultado.nombre,
-      resultado.esAdmin
-    );
-
-
-    ocultarGeneral();
-
-
-  }catch(error){
-
-    console.error(error);
-
-    mostrarGeneral(
-      "No fue posible comprobar la autorización. Revisa la conexión e intenta nuevamente.",
-      "error"
-    );
-
-  }
-
+ if(!token){location.href="coordinadora.html";return}
+ try{
+   const r=await post({accion:"validar",token});
+   if(!r.ok){limpiar();location.reload();return}
+   rol=r.rol; nombre=r.nombre; esAdmin=!!r.esAdmin;
+   localStorage.setItem(KR,rol); localStorage.setItem(KN,nombre);
+   document.getElementById("who").textContent=nombre;
+   if(esAdmin) document.getElementById("adminCard").classList.add("show");
+   await cargar();
+   setInterval(cargar,10000);
+ }catch(e){fallo("No se pudo validar el acceso.")}
 }
 
-
-// =====================================================
-// AUTORIZAR
-// =====================================================
-
-async function autorizar(){
-
-  const rol =
-    document
-      .getElementById("rol")
-      .value;
-
-
-  const pin =
-    document
-      .getElementById("pin")
-      .value.trim();
-
-
-  const boton =
-    document
-      .getElementById(
-        "botonAutorizar"
-      );
-
-
-  if(!rol){
-
-    mostrarLoginMensaje(
-      "Selecciona un tipo de acceso.",
-      "error"
-    );
-
-    return;
-  }
-
-
-  if(pin.length !== 6){
-
-    mostrarLoginMensaje(
-      "Ingresa el PIN de 6 dígitos.",
-      "error"
-    );
-
-    return;
-  }
-
-
-  boton.disabled = true;
-
-
-  mostrarLoginMensaje(
-    "Comprobando autorización...",
-    "cargando"
-  );
-
-
-  try{
-
-    const resultado =
-      await enviar({
-        accion:"autorizar",
-        rol:rol,
-        pin:pin
-      });
-
-
-    if(!resultado.ok){
-
-      if(
-        resultado.error ===
-        "PIN_INCORRECTO"
-      ){
-
-        mostrarLoginMensaje(
-          "PIN incorrecto para el acceso seleccionado.",
-          "error"
-        );
-
-      }else if(
-        resultado.error ===
-        "PIN_NO_CONFIGURADO"
-      ){
-
-        mostrarLoginMensaje(
-          "El PIN de este acceso no está configurado.",
-          "error"
-        );
-
-      }else{
-
-        mostrarLoginMensaje(
-          "No fue posible autorizar el dispositivo.",
-          "error"
-        );
-
-      }
-
-
-      boton.disabled = false;
-
-      return;
-    }
-
-
-    guardarSesion(
-      resultado.token,
-      resultado.rol,
-      resultado.nombre
-    );
-
-
-    document
-      .getElementById("pin")
-      .value = "";
-
-
-    mostrarUsuario(
-      resultado.rol,
-      resultado.nombre,
-      resultado.esAdmin
-    );
-
-
-  }catch(error){
-
-    console.error(error);
-
-    mostrarLoginMensaje(
-      "No se pudo establecer comunicación con el sistema.",
-      "error"
-    );
-
-    boton.disabled = false;
-
-  }
-
+async function post(data){
+ const res=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)});
+ if(!res.ok) throw new Error("HTTP "+res.status);
+ return await res.json();
 }
-
-
-// =====================================================
-// COMUNICACIÓN
-// =====================================================
-
-async function enviar(datos){
-
-  const respuesta =
-    await fetch(
-      API,
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":
-            "text/plain;charset=utf-8"
-        },
-
-        body:
-          JSON.stringify(datos)
-      }
-    );
-
-
-  if(!respuesta.ok){
-
-    throw new Error(
-      "HTTP " +
-      respuesta.status
-    );
-
-  }
-
-
-  return await respuesta.json();
-
+async function getEstado(){
+ const res=await fetch(API+"?accion=estado&t="+Date.now(),{cache:"no-store"});
+ if(!res.ok) throw new Error("HTTP "+res.status);
+ return await res.json();
 }
-
-
-// =====================================================
-// SESIÓN LOCAL
-// =====================================================
-
-function guardarSesion(
-  token,
-  rol,
-  nombre
-){
-
-  localStorage.setItem(
-    CLAVE_TOKEN,
-    token
-  );
-
-  localStorage.setItem(
-    CLAVE_ROL,
-    rol
-  );
-
-  localStorage.setItem(
-    CLAVE_NOMBRE,
-    nombre
-  );
-
+async function cargar(){
+ if(busy)return;
+ try{
+  const r=await getEstado();
+  if(!r.ok)throw new Error(r.error||"Error");
+  estado=r.data; render(); conexion(true,r.data.actualizado);
+ }catch(e){conexion(false)}
 }
-
-
-function limpiarAutorizacion(){
-
-  localStorage.removeItem(
-    CLAVE_TOKEN
-  );
-
-  localStorage.removeItem(
-    CLAVE_ROL
-  );
-
-  localStorage.removeItem(
-    CLAVE_NOMBRE
-  );
-
+function render(){
+ document.getElementById("cp").textContent=estado.paradero.length;
+ document.getElementById("ce").textContent=estado.espera.length;
+ renderActivos("paradero",estado.paradero,"PARADERO");
+ renderActivos("espera",estado.espera,"ESPERA");
+ const s=document.getElementById("salidas");
+ s.innerHTML=estado.salidas.length?estado.salidas.map(x=>`<div class="row"><div class="name">Móvil ${esc(x.movil)}</div><div class="time">${hora(x.fecha)}</div></div>`).join(""):`<div class="empty">Aún no hay salidas registradas</div>`;
+ actualizarAcciones();
 }
-
-
-function cerrarSesionLocal(){
-
-  const confirmar =
-    window.confirm(
-      "¿Quieres quitar la autorización guardada en este navegador?"
-    );
-
-
-  if(!confirmar){
-    return;
-  }
-
-
-  limpiarAutorizacion();
-
-  location.reload();
-
+function renderActivos(id,lista,tipo){
+ const el=document.getElementById(id);
+ if(!lista.length){el.innerHTML=`<div class="empty">${tipo==="ESPERA"?"No hay móviles esperando":"No hay móviles en paradero"}</div>`;return}
+ el.innerHTML=lista.map((x,i)=>`
+ <div class="row ${seleccion.has(String(x.movil))?"selected":""}" draggable="true" data-movil="${esc(x.movil)}" data-tipo="${tipo}">
+   <input class="check" type="checkbox" ${seleccion.has(String(x.movil))?"checked":""} onchange="toggle('${esc(x.movil)}','${tipo}',this.checked)">
+   <div class="pos">${i+1}°</div><div class="name">Móvil ${esc(x.movil)}</div>
+   <div class="moves"><button class="mini" onclick="mover('${tipo}',${i},-1)">↑</button><button class="mini" onclick="mover('${tipo}',${i},1)">↓</button></div>
+ </div>`).join("");
+ activarDrag(el,tipo);
 }
-
-
-// =====================================================
-// INTERFAZ
-// =====================================================
-
-function mostrarLogin(){
-
-  document
-    .getElementById("login")
-    .style.display =
-      "block";
-
-
-  document
-    .getElementById("usuario")
-    .classList
-    .remove("usuario-activo");
-
+function toggle(m,t,c){c?seleccion.set(String(m),t):seleccion.delete(String(m));render()}
+function limpiarSeleccion(){seleccion.clear();render()}
+function actualizarAcciones(){
+ const a=document.getElementById("actions"); if(!seleccion.size){a.classList.remove("show");return}
+ a.classList.add("show");
+ const tipos=[...seleccion.values()];
+ document.getElementById("toParadero").disabled=!tipos.every(x=>x==="ESPERA");
+ document.getElementById("salir").disabled=!tipos.every(x=>x==="PARADERO");
 }
-
-
-function mostrarUsuario(
-  rol,
-  nombre,
-  esAdmin
-){
-
-  document
-    .getElementById("login")
-    .style.display =
-      "none";
-
-
-  const usuario =
-    document
-      .getElementById("usuario");
-
-
-  usuario
-    .classList
-    .add("usuario-activo");
-
-
-  document
-    .getElementById(
-      "nombreUsuario"
-    )
-    .textContent =
-      nombre;
-
-
-  document
-    .getElementById(
-      "badge"
-    )
-    .textContent =
-      esAdmin
-        ? "ADMINISTRADOR"
-        : "COORDINADOR";
-
-
-  document
-    .getElementById(
-      "adminInfo"
-    )
-    .style.display =
-      esAdmin
-        ? "block"
-        : "none";
-
-
-  document
-    .getElementById(
-      "subtitulo"
-    )
-    .textContent =
-      nombre;
-
+async function ejecutar(payload,ok){
+ if(busy)return; busy=true;
+ try{
+  const r=await post({...payload,token});
+  if(!r.ok){if(r.error==="NO_AUTORIZADO"){limpiar();location.reload();return}throw new Error(r.error||"Error")}
+  if(r.data)estado=r.data; seleccion.clear(); render(); aviso(ok,"ok"); conexion(true,estado.actualizado);
+ }catch(e){aviso("No se pudo completar: "+e.message,"err")}
+ finally{busy=false}
 }
-
-
-// =====================================================
-// MENSAJES
-// =====================================================
-
-function mostrarLoginMensaje(
-  texto,
-  tipo
-){
-
-  const elemento =
-    document.getElementById(
-      "mensajeLogin"
-    );
-
-
-  elemento.textContent =
-    texto;
-
-
-  elemento.className =
-    "mensaje " + tipo;
-
+function abrirAgregar(){
+ const activos=new Set([...estado.espera,...estado.paradero].map(x=>String(x.movil)));
+ const disponibles=[];for(let i=1;i<=45;i++)if(!activos.has(String(i)))disponibles.push(i);
+ const sel=document.getElementById("movilSelect");
+ sel.innerHTML=disponibles.length?`<option value="">Seleccionar móvil…</option>`+disponibles.map(n=>`<option value="${n}">Móvil ${n}</option>`).join(""):`<option value="">No hay móviles disponibles</option>`;
+ document.getElementById("modalAdd").classList.add("show");
 }
-
-
-function mostrarGeneral(
-  texto,
-  tipo
-){
-
-  const elemento =
-    document.getElementById(
-      "mensajeGeneral"
-    );
-
-
-  elemento.textContent =
-    texto;
-
-
-  elemento.className =
-    "mensaje " + tipo;
-
+async function agregar(){
+ const m=document.getElementById("movilSelect").value;if(!m){modalMsg("addMsg","Selecciona un móvil.","err");return}
+ await ejecutar({accion:"agregar",movil:m},"Móvil "+m+" agregado a la espera.");cerrar("modalAdd")
 }
-
-
-function ocultarGeneral(){
-
-  const elemento =
-    document.getElementById(
-      "mensajeGeneral"
-    );
-
-
-  elemento.style.display =
-    "none";
-
+function seleccionados(tipo){return [...seleccion].filter(([,t])=>!tipo||t===tipo).map(([m])=>m)}
+async function pasarParadero(){const m=seleccionados("ESPERA");if(m.length)await ejecutar({accion:"paradero",moviles:m},m.length+" móvil(es) pasaron a Paradero.")}
+async function registrarSalida(){const m=seleccionados("PARADERO");if(m.length)await ejecutar({accion:"salida",moviles:m},m.length+" salida(s) registrada(s).")}
+async function retirar(){
+ const m=seleccionados();if(!m.length)return;
+ if(!confirm(`¿Retirar ${m.length} móvil(es) del servicio?\n\nEsto NO contará como salida.`))return;
+ await ejecutar({accion:"retirar",moviles:m},m.length+" móvil(es) retirado(s) del servicio.")
 }
-
+async function deshacer(){
+ if(!confirm("¿Deshacer la última operación registrada?"))return;
+ await ejecutar({accion:"deshacer"},"Última operación deshecha.")
+}
+async function mover(tipo,i,d){
+ const lista=(tipo==="ESPERA"?estado.espera:estado.paradero).map(x=>String(x.movil));
+ const j=i+d;if(j<0||j>=lista.length)return;[lista[i],lista[j]]=[lista[j],lista[i]];
+ await ejecutar({accion:"ordenar",estado:tipo,moviles:lista},"Orden actualizado.")
+}
+function activarDrag(el,tipo){
+ let from=null;
+ el.querySelectorAll(".row[draggable=true]").forEach(row=>{
+  row.addEventListener("dragstart",()=>{from=row.dataset.movil;row.classList.add("dragging")});
+  row.addEventListener("dragend",()=>{row.classList.remove("dragging");el.querySelectorAll(".row").forEach(r=>r.classList.remove("dragover"))});
+  row.addEventListener("dragover",e=>{e.preventDefault();row.classList.add("dragover")});
+  row.addEventListener("dragleave",()=>row.classList.remove("dragover"));
+  row.addEventListener("drop",async e=>{
+   e.preventDefault();const to=row.dataset.movil;if(!from||from===to)return;
+   const lista=(tipo==="ESPERA"?estado.espera:estado.paradero).map(x=>String(x.movil));
+   const a=lista.indexOf(from),b=lista.indexOf(to);lista.splice(b,0,lista.splice(a,1)[0]);
+   await ejecutar({accion:"ordenar",estado:tipo,moviles:lista},"Orden actualizado.");
+  });
+ });
+}
+async function abrirAccesos(){document.getElementById("modalAccess").classList.add("show");await cargarAccesos()}
+async function cargarAccesos(){
+ try{
+  const r=await post({accion:"listar_accesos",token});if(!r.ok)throw new Error(r.error||"Error");
+  const el=document.getElementById("accessList");
+  el.innerHTML=r.accesos.length?r.accesos.map(a=>`<div class="access"><b>${esc(a.nombre)} · ${esc(a.id)}</b><small>Autorizado: ${fecha(a.creado)}</small>${a.token===token?`<div><small>Este dispositivo</small></div>`:`<button class="danger" onclick="revocarToken('${esc(a.token)}')">REVOCAR DISPOSITIVO</button>`}</div>`).join(""):`<div class="empty">No hay dispositivos V2 autorizados</div>`;
+ }catch(e){modalMsg("accessMsg","No se pudieron cargar los accesos.","err")}
+}
+async function revocarToken(t){
+ if(!confirm("¿Revocar este dispositivo?"))return;
+ try{const r=await post({accion:"revocar_token",token,tokenObjetivo:t});if(!r.ok)throw new Error(r.error);modalMsg("accessMsg","Dispositivo revocado.","ok");await cargarAccesos()}catch(e){modalMsg("accessMsg","No se pudo revocar: "+e.message,"err")}
+}
+async function revocarRol(r){
+ const n=r==="COORDINADOR_1"?"Coordinador 1":"Coordinador 2";
+ if(!confirm(`¿Revocar TODOS los dispositivos de ${n}?`))return;
+ try{const x=await post({accion:"revocar_rol",token,rolObjetivo:r});if(!x.ok)throw new Error(x.error);modalMsg("accessMsg",`Se revocaron ${x.revocados} dispositivo(s) de ${n}.`,"ok");await cargarAccesos()}catch(e){modalMsg("accessMsg","No se pudo completar: "+e.message,"err")}
+}
+function cerrar(id){document.getElementById(id).classList.remove("show")}
+function limpiar(){localStorage.removeItem(KT);localStorage.removeItem(KR);localStorage.removeItem(KN)}
+function conexion(ok,f){document.getElementById("dot").classList.toggle("bad",!ok);document.getElementById("conn").textContent=ok?"Actualizado":"Sin conexión";if(ok)document.getElementById("updated").textContent=hora(f)}
+function fallo(t){conexion(false);aviso(t,"err")}
+function aviso(t,c){const e=document.getElementById("msg");e.textContent=t;e.className="msg show "+c;setTimeout(()=>e.classList.remove("show"),3500)}
+function modalMsg(id,t,c){const e=document.getElementById(id);e.textContent=t;e.className="msg show "+c}
+function hora(v){if(!v)return"--";const d=new Date(v);return isNaN(d)?"--":d.toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit",hour12:false})}
+function fecha(v){if(!v)return"--";const d=new Date(v);return isNaN(d)?"--":d.toLocaleString("es-CL",{dateStyle:"short",timeStyle:"short"})}
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 </script>
-
 </body>
 </html>
