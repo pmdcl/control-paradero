@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
 <title>Control de Paradero</title>
-<!-- Panel V2.2: respuesta visual optimizada -->
+<!-- Panel V2.3: acceso integrado + refresco estable -->
 <style>
 *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:#0f172a}
 header{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:13px 14px;box-shadow:0 2px 8px #0003}
@@ -35,9 +35,33 @@ button{border:0;border-radius:11px;padding:12px 10px;font-weight:800;font-size:1
 .processing.show{display:flex}.processingBox{background:#fff;border-radius:14px;padding:15px 20px;font-weight:900;box-shadow:0 5px 20px #0004}
 .spinner{display:inline-block;width:17px;height:17px;border:3px solid #cbd5e1;border-top-color:#2563eb;border-radius:50%;vertical-align:-3px;margin-right:8px;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.loginGate{position:fixed;inset:0;z-index:100;background:#f1f5f9;display:none;align-items:center;justify-content:center;padding:18px}
+.loginGate.show{display:flex}
+.loginBox{background:#fff;width:100%;max-width:420px;border-radius:18px;padding:22px;box-shadow:0 8px 30px #0002}
+.loginBox h1{font-size:22px;margin:0 0 6px}.loginBox p{color:#64748b;font-size:14px;margin:0 0 16px}
+.loginBox select,.loginBox input{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:11px;font-size:17px;margin:6px 0}
+.loginBox button{width:100%;margin-top:8px}
+#appShell{display:none}#appShell.show{display:block}
 </style>
 </head>
 <body>
+<div id="loginGate" class="loginGate">
+ <div class="loginBox">
+  <h1>🚐 Control de Paradero</h1>
+  <p>Acceso para Administrador y Coordinadores</p>
+  <div id="loginMsg" class="msg"></div>
+  <select id="loginRol">
+   <option value="">Seleccionar perfil…</option>
+   <option value="ADMINISTRADOR">Administrador</option>
+   <option value="COORDINADOR_1">Coordinador 1</option>
+   <option value="COORDINADOR_2">Coordinador 2</option>
+  </select>
+  <input id="loginPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="PIN de 6 dígitos">
+  <button id="loginBtn" class="primary" onclick="autorizar()">INGRESAR</button>
+ </div>
+</div>
+<div id="appShell">
 <div id="processing" class="processing"><div class="processingBox"><span class="spinner"></span><span id="processingText">Procesando…</span></div></div>
 <header><div class="top"><div><div class="brand">🚐 CONTROL DE PARADERO</div><div class="who" id="who">Comprobando acceso…</div></div><div class="conn"><div><span id="dot" class="dot"></span><span id="conn">Conectando…</span></div><div id="updated">--</div></div></div></header>
 
@@ -98,6 +122,7 @@ button{border:0;border-radius:11px;padding:12px 10px;font-weight:800;font-size:1
  <button class="soft" style="width:100%;margin-top:14px" onclick="cerrar('modalAccess')">CERRAR</button>
 </div></div>
 
+</div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
 const KT="controlParaderoTokenV2", KR="controlParaderoRolV2", KN="controlParaderoNombreV2";
@@ -105,21 +130,91 @@ let token=localStorage.getItem(KT), rol="", nombre="", esAdmin=false;
 let estado={paradero:[],espera:[],salidas:[]};
 let seleccion=new Map(); // movil -> ESPERA/PARADERO
 let busy=false;
+let refrescando=false;
+let timerRefresco=null;
+let firmaEstado="";
 
 window.addEventListener("load", iniciar);
+window.addEventListener("DOMContentLoaded",()=>{
+ const p=document.getElementById("loginPin");
+ if(p)p.addEventListener("keydown",e=>{if(e.key==="Enter")autorizar()});
+});
 
 async function iniciar(){
- if(!token){location.href="coordinadora.html";return}
+ if(!token){
+   mostrarLogin();
+   return;
+ }
  try{
    const r=await post({accion:"validar",token});
-   if(!r.ok){limpiar();location.reload();return}
-   rol=r.rol; nombre=r.nombre; esAdmin=!!r.esAdmin;
-   localStorage.setItem(KR,rol); localStorage.setItem(KN,nombre);
-   document.getElementById("who").textContent=nombre;
-   if(esAdmin) document.getElementById("adminCard").classList.add("show");
-   await cargar();
-   setInterval(cargar,10000);
- }catch(e){fallo("No se pudo validar el acceso.")}
+   if(!r.ok){
+     limpiar();
+     mostrarLogin();
+     return;
+   }
+   await entrarPanel(r);
+ }catch(e){
+   // No borramos una sesión válida por un fallo temporal de red.
+   document.getElementById("appShell").classList.add("show");
+   fallo("No se pudo validar el acceso. Revisa la conexión.");
+ }
+}
+
+function mostrarLogin(){
+ document.getElementById("appShell").classList.remove("show");
+ document.getElementById("loginGate").classList.add("show");
+ document.getElementById("loginPin").value="";
+}
+
+async function autorizar(){
+ const rsel=document.getElementById("loginRol").value;
+ const pin=document.getElementById("loginPin").value.trim();
+ if(!rsel){modalMsg("loginMsg","Selecciona tu perfil.","err");return}
+ if(!/^\d{6}$/.test(pin)){modalMsg("loginMsg","Ingresa tu PIN de 6 dígitos.","err");return}
+
+ const btn=document.getElementById("loginBtn");
+ btn.disabled=true; btn.textContent="COMPROBANDO…";
+ try{
+   const r=await post({accion:"autorizar",pin:pin,rol:rsel});
+   if(!r.ok){
+     const mensajes={
+       PIN_INCORRECTO:"PIN incorrecto.",
+       ROL_DESHABILITADO:"Este coordinador está deshabilitado por el Administrador.",
+       PIN_NO_CONFIGURADO:"Este perfil todavía no tiene PIN configurado.",
+       ROL_INVALIDO:"Perfil no válido."
+     };
+     throw new Error(mensajes[r.error]||r.error||"No se pudo autorizar.");
+   }
+   token=r.token;
+   localStorage.setItem(KT,token);
+   localStorage.setItem(KR,r.rol);
+   localStorage.setItem(KN,r.nombre);
+   document.getElementById("loginGate").classList.remove("show");
+   await entrarPanel(r);
+ }catch(e){
+   modalMsg("loginMsg",e.message,"err");
+ }finally{
+   btn.disabled=false; btn.textContent="INGRESAR";
+ }
+}
+
+async function entrarPanel(r){
+ rol=r.rol; nombre=r.nombre; esAdmin=!!r.esAdmin;
+ localStorage.setItem(KR,rol); localStorage.setItem(KN,nombre);
+ document.getElementById("who").textContent=nombre;
+ document.getElementById("adminCard").classList.toggle("show",esAdmin);
+ document.getElementById("loginGate").classList.remove("show");
+ document.getElementById("appShell").classList.add("show");
+ await cargar(true);
+ programarRefresco();
+}
+
+function programarRefresco(){
+ if(timerRefresco)clearTimeout(timerRefresco);
+ timerRefresco=setTimeout(async()=>{
+   await cargar(false);
+   programarRefresco();
+ },10000);
 }
 
 async function post(data){
@@ -132,13 +227,28 @@ async function getEstado(){
  if(!res.ok) throw new Error("HTTP "+res.status);
  return await res.json();
 }
-async function cargar(){
- if(busy)return;
+async function cargar(forzar=false){
+ if(busy||refrescando)return;
+ refrescando=true;
  try{
   const r=await getEstado();
   if(!r.ok)throw new Error(r.error||"Error");
-  estado=r.data; render(); conexion(true,r.data.actualizado);
- }catch(e){conexion(false)}
+  const nuevaFirma=JSON.stringify({
+    p:r.data.paradero,
+    e:r.data.espera,
+    s:r.data.salidas
+  });
+  estado=r.data;
+  if(forzar||nuevaFirma!==firmaEstado){
+    firmaEstado=nuevaFirma;
+    render();
+  }
+  conexion(true,r.data.actualizado);
+ }catch(e){
+  conexion(false);
+ }finally{
+  refrescando=false;
+ }
 }
 function render(){
  document.getElementById("cp").textContent=estado.paradero.length;
@@ -174,8 +284,10 @@ async function ejecutar(payload,ok){
  mostrarProcesando("Procesando orden…");
  try{
   const r=await post({...payload,token});
-  if(!r.ok){if(r.error==="NO_AUTORIZADO"){limpiar();location.reload();return}throw new Error(r.error||"Error")}
-  if(r.data)estado=r.data; seleccion.clear(); render(); aviso(ok,"ok"); conexion(true,estado.actualizado);
+  if(!r.ok){if(r.error==="NO_AUTORIZADO"){limpiar();ocultarProcesando();mostrarLogin();return}throw new Error(r.error||"Error")}
+  if(r.data)estado=r.data;
+  firmaEstado=JSON.stringify({p:estado.paradero,e:estado.espera,s:estado.salidas});
+  seleccion.clear(); render(); aviso(ok,"ok"); conexion(true,estado.actualizado);
  }catch(e){aviso("No se pudo completar: "+e.message,"err")}
  finally{busy=false;ocultarProcesando()}
 }
