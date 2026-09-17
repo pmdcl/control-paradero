@@ -44,7 +44,8 @@ body{
 }
 
 .container{
-  max-width:500px;
+  width:100%;
+  max-width:520px;
   margin:auto;
   padding:16px;
 }
@@ -108,7 +109,6 @@ button{
 
 button:disabled{
   opacity:.55;
-  cursor:not-allowed;
 }
 
 .mensaje{
@@ -138,13 +138,49 @@ button:disabled{
   color:#075985;
 }
 
-.seguridad{
-  margin-top:15px;
-  padding-top:15px;
-  border-top:1px solid #e2e8f0;
+.usuario{
+  display:none;
+}
+
+.usuario-activo{
+  display:block;
+}
+
+.rol-badge{
+  display:inline-block;
+  background:#ede9fe;
+  color:#5b21b6;
   font-size:12px;
-  color:#64748b;
+  font-weight:800;
+  padding:5px 9px;
+  border-radius:20px;
+  margin-bottom:10px;
+}
+
+.nombre-usuario{
+  font-size:23px;
+  font-weight:900;
+  margin-bottom:5px;
+}
+
+.estado{
+  color:#166534;
+  font-size:14px;
+  font-weight:700;
+}
+
+.admin-info{
+  margin-top:18px;
+  padding:13px;
+  border-radius:10px;
+  background:#f8fafc;
+  color:#475569;
+  font-size:13px;
   line-height:1.5;
+}
+
+.secundario{
+  background:#475569;
 }
 
 </style>
@@ -154,12 +190,10 @@ button:disabled{
 
 <header class="header">
 
-  <h1>
-    🚐 CONTROL DE PARADERO
-  </h1>
+  <h1>🚐 CONTROL DE PARADERO</h1>
 
-  <p>
-    Acceso de coordinadores
+  <p id="subtitulo">
+    Acceso autorizado
   </p>
 
 </header>
@@ -167,34 +201,43 @@ button:disabled{
 
 <main class="container">
 
-  <div class="card">
+  <!-- LOGIN -->
+
+  <div
+    id="login"
+    class="card"
+  >
 
     <div class="titulo">
       🔐 Autorizar dispositivo
     </div>
 
     <div class="texto">
-      Esta autorización solo es necesaria
-      la primera vez que se utiliza este
-      navegador.
+      Selecciona el tipo de acceso de este
+      dispositivo. Esta autorización quedará
+      guardada en este navegador.
     </div>
 
 
     <label>
-      Coordinador
+      Tipo de acceso
     </label>
 
-    <select id="coordinador">
+    <select id="rol">
 
       <option value="">
         Seleccionar...
       </option>
 
-      <option value="Coordinador 1">
+      <option value="ADMINISTRADOR">
+        Administrador
+      </option>
+
+      <option value="COORDINADOR_1">
         Coordinador 1
       </option>
 
-      <option value="Coordinador 2">
+      <option value="COORDINADOR_2">
         Coordinador 2
       </option>
 
@@ -216,7 +259,7 @@ button:disabled{
 
 
     <button
-      id="boton"
+      id="botonAutorizar"
       onclick="autorizar()"
     >
       AUTORIZAR ESTE DISPOSITIVO
@@ -224,21 +267,64 @@ button:disabled{
 
 
     <div
-      id="mensaje"
+      id="mensajeLogin"
       class="mensaje"
     ></div>
 
+  </div>
 
-    <div class="seguridad">
 
-      🔒 El PIN no se guardará en este
-      teléfono. Si la autorización es
-      correcta, el sistema guardará un
-      identificador del dispositivo.
+  <!-- DISPOSITIVO AUTORIZADO -->
 
+  <div
+    id="usuario"
+    class="card usuario"
+  >
+
+    <div
+      id="badge"
+      class="rol-badge"
+    >
+      ACCESO
     </div>
 
+    <div
+      id="nombreUsuario"
+      class="nombre-usuario"
+    >
+      --
+    </div>
+
+    <div class="estado">
+      ● Dispositivo autorizado
+    </div>
+
+
+    <div
+      id="adminInfo"
+      class="admin-info"
+      style="display:none"
+    >
+      🛡️ Este dispositivo tiene permisos de
+      administrador. Podrá operar el paradero
+      y gestionar los dispositivos autorizados.
+    </div>
+
+
+    <button
+      class="secundario"
+      onclick="cerrarSesionLocal()"
+    >
+      CAMBIAR ACCESO EN ESTE DISPOSITIVO
+    </button>
+
   </div>
+
+
+  <div
+    id="mensajeGeneral"
+    class="mensaje"
+  ></div>
 
 </main>
 
@@ -249,27 +335,136 @@ const API =
 "https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
 
 
+const CLAVE_TOKEN =
+  "controlParaderoTokenV2";
+
+
+const CLAVE_NOMBRE =
+  "controlParaderoNombreV2";
+
+
+const CLAVE_ROL =
+  "controlParaderoRolV2";
+
+
+// =====================================================
+// INICIO
+// =====================================================
+
+window.addEventListener(
+  "load",
+  iniciar
+);
+
+
+async function iniciar(){
+
+  const token =
+    localStorage.getItem(
+      CLAVE_TOKEN
+    );
+
+
+  if(!token){
+
+    mostrarLogin();
+
+    return;
+  }
+
+
+  mostrarGeneral(
+    "Comprobando autorización...",
+    "cargando"
+  );
+
+
+  try{
+
+    const resultado =
+      await enviar({
+        accion:"validar",
+        token:token
+      });
+
+
+    if(!resultado.ok){
+
+      limpiarAutorizacion();
+
+      mostrarLogin();
+
+      mostrarLoginMensaje(
+        "La autorización anterior ya no es válida. Ingresa nuevamente.",
+        "error"
+      );
+
+      ocultarGeneral();
+
+      return;
+    }
+
+
+    guardarSesion(
+      token,
+      resultado.rol,
+      resultado.nombre
+    );
+
+
+    mostrarUsuario(
+      resultado.rol,
+      resultado.nombre,
+      resultado.esAdmin
+    );
+
+
+    ocultarGeneral();
+
+
+  }catch(error){
+
+    console.error(error);
+
+    mostrarGeneral(
+      "No fue posible comprobar la autorización. Revisa la conexión e intenta nuevamente.",
+      "error"
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// AUTORIZAR
+// =====================================================
+
 async function autorizar(){
 
-  const coordinador =
+  const rol =
     document
-      .getElementById("coordinador")
+      .getElementById("rol")
       .value;
+
 
   const pin =
     document
       .getElementById("pin")
       .value.trim();
 
+
   const boton =
     document
-      .getElementById("boton");
+      .getElementById(
+        "botonAutorizar"
+      );
 
 
-  if(!coordinador){
+  if(!rol){
 
-    mostrar(
-      "Selecciona Coordinador 1 o Coordinador 2.",
+    mostrarLoginMensaje(
+      "Selecciona un tipo de acceso.",
       "error"
     );
 
@@ -279,7 +474,7 @@ async function autorizar(){
 
   if(pin.length !== 6){
 
-    mostrar(
+    mostrarLoginMensaje(
       "Ingresa el PIN de 6 dígitos.",
       "error"
     );
@@ -290,7 +485,8 @@ async function autorizar(){
 
   boton.disabled = true;
 
-  mostrar(
+
+  mostrarLoginMensaje(
     "Comprobando autorización...",
     "cargando"
   );
@@ -298,34 +494,12 @@ async function autorizar(){
 
   try{
 
-    /*
-      Usamos text/plain deliberadamente.
-      Así evitamos una solicitud OPTIONS
-      adicional del navegador.
-    */
-
-    const respuesta =
-      await fetch(
-        API,
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
-
-          body:JSON.stringify({
-            accion:"autorizar",
-            pin:pin,
-            coordinador:coordinador
-          })
-        }
-      );
-
-
     const resultado =
-      await respuesta.json();
+      await enviar({
+        accion:"autorizar",
+        rol:rol,
+        pin:pin
+      });
 
 
     if(!resultado.ok){
@@ -335,19 +509,30 @@ async function autorizar(){
         "PIN_INCORRECTO"
       ){
 
-        mostrar(
-          "PIN incorrecto.",
+        mostrarLoginMensaje(
+          "PIN incorrecto para el acceso seleccionado.",
+          "error"
+        );
+
+      }else if(
+        resultado.error ===
+        "PIN_NO_CONFIGURADO"
+      ){
+
+        mostrarLoginMensaje(
+          "El PIN de este acceso no está configurado.",
           "error"
         );
 
       }else{
 
-        mostrar(
+        mostrarLoginMensaje(
           "No fue posible autorizar el dispositivo.",
           "error"
         );
 
       }
+
 
       boton.disabled = false;
 
@@ -355,19 +540,10 @@ async function autorizar(){
     }
 
 
-    /*
-      Guardamos únicamente el token.
-      NO guardamos el PIN.
-    */
-
-    localStorage.setItem(
-      "controlParaderoToken",
-      resultado.token
-    );
-
-    localStorage.setItem(
-      "controlParaderoCoordinador",
-      resultado.coordinador
+    guardarSesion(
+      resultado.token,
+      resultado.rol,
+      resultado.nombre
     );
 
 
@@ -376,23 +552,18 @@ async function autorizar(){
       .value = "";
 
 
-    mostrar(
-      "✓ Dispositivo autorizado como " +
-      resultado.coordinador +
-      ".",
-      "correcto"
+    mostrarUsuario(
+      resultado.rol,
+      resultado.nombre,
+      resultado.esAdmin
     );
-
-
-    boton.textContent =
-      "DISPOSITIVO AUTORIZADO";
 
 
   }catch(error){
 
     console.error(error);
 
-    mostrar(
+    mostrarLoginMensaje(
       "No se pudo establecer comunicación con el sistema.",
       "error"
     );
@@ -404,57 +575,247 @@ async function autorizar(){
 }
 
 
-function mostrar(texto,tipo){
+// =====================================================
+// COMUNICACIÓN
+// =====================================================
 
-  const mensaje =
+async function enviar(datos){
+
+  const respuesta =
+    await fetch(
+      API,
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "text/plain;charset=utf-8"
+        },
+
+        body:
+          JSON.stringify(datos)
+      }
+    );
+
+
+  if(!respuesta.ok){
+
+    throw new Error(
+      "HTTP " +
+      respuesta.status
+    );
+
+  }
+
+
+  return await respuesta.json();
+
+}
+
+
+// =====================================================
+// SESIÓN LOCAL
+// =====================================================
+
+function guardarSesion(
+  token,
+  rol,
+  nombre
+){
+
+  localStorage.setItem(
+    CLAVE_TOKEN,
+    token
+  );
+
+  localStorage.setItem(
+    CLAVE_ROL,
+    rol
+  );
+
+  localStorage.setItem(
+    CLAVE_NOMBRE,
+    nombre
+  );
+
+}
+
+
+function limpiarAutorizacion(){
+
+  localStorage.removeItem(
+    CLAVE_TOKEN
+  );
+
+  localStorage.removeItem(
+    CLAVE_ROL
+  );
+
+  localStorage.removeItem(
+    CLAVE_NOMBRE
+  );
+
+}
+
+
+function cerrarSesionLocal(){
+
+  const confirmar =
+    window.confirm(
+      "¿Quieres quitar la autorización guardada en este navegador?"
+    );
+
+
+  if(!confirmar){
+    return;
+  }
+
+
+  limpiarAutorizacion();
+
+  location.reload();
+
+}
+
+
+// =====================================================
+// INTERFAZ
+// =====================================================
+
+function mostrarLogin(){
+
+  document
+    .getElementById("login")
+    .style.display =
+      "block";
+
+
+  document
+    .getElementById("usuario")
+    .classList
+    .remove("usuario-activo");
+
+}
+
+
+function mostrarUsuario(
+  rol,
+  nombre,
+  esAdmin
+){
+
+  document
+    .getElementById("login")
+    .style.display =
+      "none";
+
+
+  const usuario =
     document
-      .getElementById("mensaje");
+      .getElementById("usuario");
 
-  mensaje.textContent =
+
+  usuario
+    .classList
+    .add("usuario-activo");
+
+
+  document
+    .getElementById(
+      "nombreUsuario"
+    )
+    .textContent =
+      nombre;
+
+
+  document
+    .getElementById(
+      "badge"
+    )
+    .textContent =
+      esAdmin
+        ? "ADMINISTRADOR"
+        : "COORDINADOR";
+
+
+  document
+    .getElementById(
+      "adminInfo"
+    )
+    .style.display =
+      esAdmin
+        ? "block"
+        : "none";
+
+
+  document
+    .getElementById(
+      "subtitulo"
+    )
+    .textContent =
+      nombre;
+
+}
+
+
+// =====================================================
+// MENSAJES
+// =====================================================
+
+function mostrarLoginMensaje(
+  texto,
+  tipo
+){
+
+  const elemento =
+    document.getElementById(
+      "mensajeLogin"
+    );
+
+
+  elemento.textContent =
     texto;
 
-  mensaje.className =
+
+  elemento.className =
     "mensaje " + tipo;
 
 }
 
 
-/*
-  Si este navegador ya fue autorizado,
-  por ahora simplemente lo indicamos.
+function mostrarGeneral(
+  texto,
+  tipo
+){
 
-  En la versión definitiva validaremos
-  también el token contra Apps Script.
-*/
-
-window.addEventListener(
-  "load",
-  () => {
-
-    const token =
-      localStorage.getItem(
-        "controlParaderoToken"
-      );
-
-    const coordinador =
-      localStorage.getItem(
-        "controlParaderoCoordinador"
-      );
+  const elemento =
+    document.getElementById(
+      "mensajeGeneral"
+    );
 
 
-    if(token && coordinador){
+  elemento.textContent =
+    texto;
 
-      mostrar(
-        "✓ Este dispositivo tiene una autorización guardada como " +
-        coordinador +
-        ".",
-        "correcto"
-      );
 
-    }
+  elemento.className =
+    "mensaje " + tipo;
 
-  }
-);
+}
+
+
+function ocultarGeneral(){
+
+  const elemento =
+    document.getElementById(
+      "mensajeGeneral"
+    );
+
+
+  elemento.style.display =
+    "none";
+
+}
 
 </script>
 
