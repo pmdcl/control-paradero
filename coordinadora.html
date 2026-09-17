@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
 <title>Control de Paradero</title>
+<!-- Panel V2.1: gestión de altas/bajas de coordinadores -->
 <style>
 *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:#0f172a}
 header{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:13px 14px;box-shadow:0 2px 8px #0003}
@@ -83,11 +84,12 @@ button{border:0;border-radius:11px;padding:12px 10px;font-weight:800;font-size:1
 <div id="modalAccess" class="modal"><div class="box">
  <h2>🛡️ Dispositivos autorizados</h2>
  <div id="accessMsg" class="msg"></div>
- <div id="accessList"></div>
+ <div style="font-weight:900;margin:4px 0 8px">Estado de coordinadores</div>
+ <div id="rolesList"></div>
  <hr style="border:0;border-top:1px solid #e2e8f0;margin:15px 0">
- <button class="danger" style="width:100%" onclick="revocarRol('COORDINADOR_1')">REVOCAR TODOS — COORDINADOR 1</button>
- <button class="danger" style="width:100%;margin-top:8px" onclick="revocarRol('COORDINADOR_2')">REVOCAR TODOS — COORDINADOR 2</button>
- <button class="soft" style="width:100%;margin-top:8px" onclick="cerrar('modalAccess')">CERRAR</button>
+ <div style="font-weight:900;margin-bottom:8px">Dispositivos autorizados</div>
+ <div id="accessList"></div>
+ <button class="soft" style="width:100%;margin-top:14px" onclick="cerrar('modalAccess')">CERRAR</button>
 </div></div>
 
 <script>
@@ -213,7 +215,32 @@ function activarDrag(el,tipo){
   });
  });
 }
-async function abrirAccesos(){document.getElementById("modalAccess").classList.add("show");await cargarAccesos()}
+async function abrirAccesos(){
+ document.getElementById("modalAccess").classList.add("show");
+ await Promise.all([cargarRoles(),cargarAccesos()]);
+}
+async function cargarRoles(){
+ try{
+  const r=await post({accion:"estado_roles",token});
+  if(!r.ok)throw new Error(r.error||"Error");
+  const el=document.getElementById("rolesList");
+  el.innerHTML=["COORDINADOR_1","COORDINADOR_2"].map((x,i)=>{
+    const activo=!!r.roles[x], nombre="Coordinador "+(i+1);
+    return `<div class="access"><b>${nombre}</b><small>${activo?"🟢 ACTIVO — puede autorizarse y trabajar":"🔴 INACTIVO — acceso bloqueado"}</small><button class="${activo?"danger":"green"}" onclick="cambiarRol('${x}',${!activo})">${activo?"DAR DE BAJA":"HABILITAR"}</button></div>`;
+  }).join("");
+ }catch(e){modalMsg("accessMsg","No se pudo consultar el estado de coordinadores.","err")}
+}
+async function cambiarRol(r,habilitar){
+ const n=r==="COORDINADOR_1"?"Coordinador 1":"Coordinador 2";
+ const texto=habilitar?`¿Habilitar a ${n}? Podrá volver a autorizarse con su PIN.`:`¿Dar de baja a ${n}? Sus dispositivos autorizados perderán acceso inmediatamente.`;
+ if(!confirm(texto))return;
+ try{
+  const x=await post({accion:"cambiar_estado_rol",token,rolObjetivo:r,habilitado:habilitar});
+  if(!x.ok)throw new Error(x.error||"Error");
+  modalMsg("accessMsg",habilitar?`${n} habilitado.`:`${n} dado de baja. Se revocaron ${x.revocados} dispositivo(s).`,"ok");
+  await Promise.all([cargarRoles(),cargarAccesos()]);
+ }catch(e){modalMsg("accessMsg","No se pudo cambiar el estado: "+e.message,"err")}
+}
 async function cargarAccesos(){
  try{
   const r=await post({accion:"listar_accesos",token});if(!r.ok)throw new Error(r.error||"Error");
