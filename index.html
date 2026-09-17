@@ -1,1 +1,720 @@
-<h1>Control Paradero</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#0f172a">
+
+  <title>Fila del Paradero</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .header {
+      background: #0f172a;
+      color: white;
+      padding: 18px 15px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      margin: auto;
+      padding: 14px;
+    }
+
+    .status-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 7px rgba(0,0,0,.07);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .conexion {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #16a34a;
+    }
+
+    .dot.error {
+      background: #dc2626;
+    }
+
+    .card {
+      border-radius: 16px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,.08);
+      background: white;
+    }
+
+    .card-header {
+      padding: 13px 15px;
+      font-size: 17px;
+      font-weight: 800;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .contador {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.65);
+    }
+
+    .header-paradero {
+      background: #bbf7d0;
+      color: #14532d;
+    }
+
+    .header-espera {
+      background: #fef08a;
+      color: #713f12;
+    }
+
+    .header-salida {
+      background: #fecaca;
+      color: #7f1d1d;
+    }
+
+    .lista {
+      padding: 8px 12px 12px 12px;
+    }
+
+    .item {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 4px;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .posicion {
+      width: 52px;
+      min-width: 52px;
+      font-size: 19px;
+      font-weight: 900;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .movil {
+      flex: 1;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .hora {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .movil-paradero {
+      background: #f0fdf4;
+      border-radius: 10px;
+      margin: 5px 0;
+      padding-left: 13px;
+      border-bottom: none;
+    }
+
+    .movil-paradero .movil {
+      color: #166534;
+    }
+
+    .movil-salida .movil {
+      color: #991b1b;
+    }
+
+    .vacio {
+      text-align: center;
+      padding: 24px 10px;
+      color: #94a3b8;
+      font-size: 15px;
+    }
+
+    .error-box {
+      display: none;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      color: #9a3412;
+      border-radius: 12px;
+      padding: 11px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 11px;
+      padding: 5px 10px 18px 10px;
+    }
+
+    @media (max-width: 380px) {
+      .header-title {
+        font-size: 20px;
+      }
+
+      .movil {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="header-title">
+      🚐 FILA DEL PARADERO
+    </div>
+
+    <div class="header-subtitle">
+      Estado actual de los móviles
+    </div>
+  </header>
+
+
+  <main class="container">
+
+    <!-- ESTADO DE CONEXIÓN -->
+
+    <div class="status-bar">
+
+      <div class="conexion">
+        <span
+          id="dotConexion"
+          class="dot"
+        ></span>
+
+        <span id="textoConexion">
+          Conectando...
+        </span>
+      </div>
+
+      <div id="horaActualizacion">
+        --
+      </div>
+
+    </div>
+
+
+    <div
+      id="errorBox"
+      class="error-box"
+    >
+      ⚠ Sin conexión. Se está mostrando la última
+      información recibida.
+    </div>
+
+
+    <!-- PARADERO -->
+
+    <section class="card">
+
+      <div
+        class="card-header header-paradero"
+      >
+        <span>
+          🟢 PARADERO / SALIDA
+        </span>
+
+        <span
+          id="contadorParadero"
+          class="contador"
+        >
+          0
+        </span>
+      </div>
+
+      <div
+        id="listaParadero"
+        class="lista"
+      ></div>
+
+    </section>
+
+
+    <!-- ESPERA -->
+
+    <section class="card">
+
+      <div
+        class="card-header header-espera"
+      >
+        <span>
+          🟡 EN ESPERA
+        </span>
+
+        <span
+          id="contadorEspera"
+          class="contador"
+        >
+          0
+        </span>
+      </div>
+
+      <div
+        id="listaEspera"
+        class="lista"
+      ></div>
+
+    </section>
+
+
+    <!-- ÚLTIMAS SALIDAS -->
+
+    <section class="card">
+
+      <div
+        class="card-header header-salida"
+      >
+        <span>
+          🔴 ÚLTIMAS SALIDAS
+        </span>
+
+        <span class="contador">
+          últimas 3
+        </span>
+      </div>
+
+      <div
+        id="listaSalidas"
+        class="lista"
+      ></div>
+
+    </section>
+
+
+    <div class="footer">
+      La información se actualiza automáticamente.
+    </div>
+
+  </main>
+
+
+  <script>
+
+    // =====================================================
+    // API CONTROL PARADERO
+    // =====================================================
+
+    const API =
+      "https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
+
+
+    let primeraCarga = true;
+
+
+    // =====================================================
+    // CARGAR DATOS
+    // =====================================================
+
+    async function cargarDatos() {
+
+      try {
+
+        const respuesta = await fetch(
+          API +
+          "?accion=estado&t=" +
+          Date.now(),
+          {
+            cache: "no-store"
+          }
+        );
+
+
+        if (!respuesta.ok) {
+          throw new Error(
+            "Error de conexión"
+          );
+        }
+
+
+        const resultado =
+          await respuesta.json();
+
+
+        if (!resultado.ok) {
+          throw new Error(
+            resultado.error ||
+            "Error del servidor"
+          );
+        }
+
+
+        mostrarDatos(
+          resultado.data
+        );
+
+        marcarConexionCorrecta(
+          resultado.data.actualizado
+        );
+
+
+        primeraCarga = false;
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        marcarErrorConexion();
+
+      }
+
+    }
+
+
+    // =====================================================
+    // MOSTRAR DATOS
+    // =====================================================
+
+    function mostrarDatos(data) {
+
+      mostrarParadero(
+        data.paradero || []
+      );
+
+      mostrarEspera(
+        data.espera || []
+      );
+
+      mostrarSalidas(
+        data.salidas || []
+      );
+
+    }
+
+
+    // =====================================================
+    // PARADERO
+    // =====================================================
+
+    function mostrarParadero(lista) {
+
+      const contenedor =
+        document.getElementById(
+          "listaParadero"
+        );
+
+      document.getElementById(
+        "contadorParadero"
+      ).textContent =
+        lista.length;
+
+
+      if (!lista.length) {
+
+        contenedor.innerHTML =
+          '<div class="vacio">' +
+          'No hay móviles en paradero' +
+          '</div>';
+
+        return;
+      }
+
+
+      contenedor.innerHTML =
+        lista.map(
+          (item, indice) => `
+
+            <div
+              class="item movil-paradero"
+            >
+
+              <div class="posicion">
+                ${indice + 1}°
+              </div>
+
+              <div class="movil">
+                Móvil ${escapar(item.movil)}
+              </div>
+
+            </div>
+
+          `
+        ).join("");
+
+    }
+
+
+    // =====================================================
+    // ESPERA
+    // =====================================================
+
+    function mostrarEspera(lista) {
+
+      const contenedor =
+        document.getElementById(
+          "listaEspera"
+        );
+
+      document.getElementById(
+        "contadorEspera"
+      ).textContent =
+        lista.length;
+
+
+      if (!lista.length) {
+
+        contenedor.innerHTML =
+          '<div class="vacio">' +
+          'No hay móviles esperando' +
+          '</div>';
+
+        return;
+      }
+
+
+      contenedor.innerHTML =
+        lista.map(
+          (item, indice) => `
+
+            <div class="item">
+
+              <div class="posicion">
+                ${indice + 1}°
+              </div>
+
+              <div class="movil">
+                Móvil ${escapar(item.movil)}
+              </div>
+
+            </div>
+
+          `
+        ).join("");
+
+    }
+
+
+    // =====================================================
+    // ÚLTIMAS SALIDAS
+    // =====================================================
+
+    function mostrarSalidas(lista) {
+
+      const contenedor =
+        document.getElementById(
+          "listaSalidas"
+        );
+
+
+      if (!lista.length) {
+
+        contenedor.innerHTML =
+          '<div class="vacio">' +
+          'Aún no hay salidas registradas' +
+          '</div>';
+
+        return;
+      }
+
+
+      contenedor.innerHTML =
+        lista.map(
+          item => `
+
+            <div
+              class="item movil-salida"
+            >
+
+              <div class="movil">
+                Móvil ${escapar(item.movil)}
+              </div>
+
+              <div class="hora">
+                ${formatearHora(item.fecha)}
+              </div>
+
+            </div>
+
+          `
+        ).join("");
+
+    }
+
+
+    // =====================================================
+    // CONEXIÓN
+    // =====================================================
+
+    function marcarConexionCorrecta(
+      fechaServidor
+    ) {
+
+      document
+        .getElementById(
+          "dotConexion"
+        )
+        .classList
+        .remove("error");
+
+
+      document.getElementById(
+        "textoConexion"
+      ).textContent =
+        "Actualizado";
+
+
+      document.getElementById(
+        "errorBox"
+      ).style.display =
+        "none";
+
+
+      document.getElementById(
+        "horaActualizacion"
+      ).textContent =
+        formatearHora(
+          fechaServidor
+        );
+
+    }
+
+
+    function marcarErrorConexion() {
+
+      document
+        .getElementById(
+          "dotConexion"
+        )
+        .classList
+        .add("error");
+
+
+      document.getElementById(
+        "textoConexion"
+      ).textContent =
+        "Sin conexión";
+
+
+      document.getElementById(
+        "errorBox"
+      ).style.display =
+        "block";
+
+    }
+
+
+    // =====================================================
+    // HORAS
+    // =====================================================
+
+    function formatearHora(fecha) {
+
+      if (!fecha) return "--";
+
+      const d =
+        new Date(fecha);
+
+
+      if (
+        isNaN(d.getTime())
+      ) {
+        return "--";
+      }
+
+
+      return d.toLocaleTimeString(
+        "es-CL",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }
+      );
+
+    }
+
+
+    // =====================================================
+    // SEGURIDAD VISUAL
+    // =====================================================
+
+    function escapar(valor) {
+
+      return String(valor)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    }
+
+
+    // =====================================================
+    // INICIO
+    // =====================================================
+
+    cargarDatos();
+
+    setInterval(
+      cargarDatos,
+      10000
+    );
+
+  </script>
+
+</body>
+</html>
