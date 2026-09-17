@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<meta name="theme-color" content="#0f172a">
+
+<title>Control de Paradero</title>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f1f5f9;
+  color:#0f172a;
+}
+
+.header{
+  background:#0f172a;
+  color:white;
+  padding:20px 15px;
+  text-align:center;
+}
+
+.header h1{
+  margin:0;
+  font-size:22px;
+}
+
+.header p{
+  margin:5px 0 0;
+  color:#cbd5e1;
+  font-size:13px;
+}
+
+.container{
+  max-width:500px;
+  margin:auto;
+  padding:16px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 3px 12px rgba(0,0,0,.08);
+  margin-bottom:15px;
+}
+
+.titulo{
+  font-size:20px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.texto{
+  color:#64748b;
+  font-size:14px;
+  line-height:1.5;
+  margin-bottom:18px;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin:14px 0 6px;
+}
+
+select,
+input{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #cbd5e1;
+  background:white;
+  font-size:17px;
+}
+
+input{
+  text-align:center;
+  font-size:22px;
+  letter-spacing:5px;
+}
+
+button{
+  width:100%;
+  border:none;
+  border-radius:11px;
+  padding:14px;
+  margin-top:18px;
+  background:#2563eb;
+  color:white;
+  font-size:17px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.mensaje{
+  display:none;
+  margin-top:15px;
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+.correcto{
+  display:block;
+  background:#dcfce7;
+  color:#166534;
+}
+
+.error{
+  display:block;
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.cargando{
+  display:block;
+  background:#e0f2fe;
+  color:#075985;
+}
+
+.seguridad{
+  margin-top:15px;
+  padding-top:15px;
+  border-top:1px solid #e2e8f0;
+  font-size:12px;
+  color:#64748b;
+  line-height:1.5;
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="header">
+
+  <h1>
+    🚐 CONTROL DE PARADERO
+  </h1>
+
+  <p>
+    Acceso de coordinadores
+  </p>
+
+</header>
+
+
+<main class="container">
+
+  <div class="card">
+
+    <div class="titulo">
+      🔐 Autorizar dispositivo
+    </div>
+
+    <div class="texto">
+      Esta autorización solo es necesaria
+      la primera vez que se utiliza este
+      navegador.
+    </div>
+
+
+    <label>
+      Coordinador
+    </label>
+
+    <select id="coordinador">
+
+      <option value="">
+        Seleccionar...
+      </option>
+
+      <option value="Coordinador 1">
+        Coordinador 1
+      </option>
+
+      <option value="Coordinador 2">
+        Coordinador 2
+      </option>
+
+    </select>
+
+
+    <label>
+      PIN
+    </label>
+
+    <input
+      id="pin"
+      type="password"
+      inputmode="numeric"
+      maxlength="6"
+      placeholder="••••••"
+      autocomplete="off"
+    >
+
+
+    <button
+      id="boton"
+      onclick="autorizar()"
+    >
+      AUTORIZAR ESTE DISPOSITIVO
+    </button>
+
+
+    <div
+      id="mensaje"
+      class="mensaje"
+    ></div>
+
+
+    <div class="seguridad">
+
+      🔒 El PIN no se guardará en este
+      teléfono. Si la autorización es
+      correcta, el sistema guardará un
+      identificador del dispositivo.
+
+    </div>
+
+  </div>
+
+</main>
+
+
+<script>
+
+const API =
+"https://script.google.com/macros/s/AKfycbwLKFvJKYCji6Tc4RDylgI2He41YV-c5pOFobuyKDEzaqCPjsWBlMeiFTiGwl9oxGN4kw/exec";
+
+
+async function autorizar(){
+
+  const coordinador =
+    document
+      .getElementById("coordinador")
+      .value;
+
+  const pin =
+    document
+      .getElementById("pin")
+      .value.trim();
+
+  const boton =
+    document
+      .getElementById("boton");
+
+
+  if(!coordinador){
+
+    mostrar(
+      "Selecciona Coordinador 1 o Coordinador 2.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if(pin.length !== 6){
+
+    mostrar(
+      "Ingresa el PIN de 6 dígitos.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  boton.disabled = true;
+
+  mostrar(
+    "Comprobando autorización...",
+    "cargando"
+  );
+
+
+  try{
+
+    /*
+      Usamos text/plain deliberadamente.
+      Así evitamos una solicitud OPTIONS
+      adicional del navegador.
+    */
+
+    const respuesta =
+      await fetch(
+        API,
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body:JSON.stringify({
+            accion:"autorizar",
+            pin:pin,
+            coordinador:coordinador
+          })
+        }
+      );
+
+
+    const resultado =
+      await respuesta.json();
+
+
+    if(!resultado.ok){
+
+      if(
+        resultado.error ===
+        "PIN_INCORRECTO"
+      ){
+
+        mostrar(
+          "PIN incorrecto.",
+          "error"
+        );
+
+      }else{
+
+        mostrar(
+          "No fue posible autorizar el dispositivo.",
+          "error"
+        );
+
+      }
+
+      boton.disabled = false;
+
+      return;
+    }
+
+
+    /*
+      Guardamos únicamente el token.
+      NO guardamos el PIN.
+    */
+
+    localStorage.setItem(
+      "controlParaderoToken",
+      resultado.token
+    );
+
+    localStorage.setItem(
+      "controlParaderoCoordinador",
+      resultado.coordinador
+    );
+
+
+    document
+      .getElementById("pin")
+      .value = "";
+
+
+    mostrar(
+      "✓ Dispositivo autorizado como " +
+      resultado.coordinador +
+      ".",
+      "correcto"
+    );
+
+
+    boton.textContent =
+      "DISPOSITIVO AUTORIZADO";
+
+
+  }catch(error){
+
+    console.error(error);
+
+    mostrar(
+      "No se pudo establecer comunicación con el sistema.",
+      "error"
+    );
+
+    boton.disabled = false;
+
+  }
+
+}
+
+
+function mostrar(texto,tipo){
+
+  const mensaje =
+    document
+      .getElementById("mensaje");
+
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje " + tipo;
+
+}
+
+
+/*
+  Si este navegador ya fue autorizado,
+  por ahora simplemente lo indicamos.
+
+  En la versión definitiva validaremos
+  también el token contra Apps Script.
+*/
+
+window.addEventListener(
+  "load",
+  () => {
+
+    const token =
+      localStorage.getItem(
+        "controlParaderoToken"
+      );
+
+    const coordinador =
+      localStorage.getItem(
+        "controlParaderoCoordinador"
+      );
+
+
+    if(token && coordinador){
+
+      mostrar(
+        "✓ Este dispositivo tiene una autorización guardada como " +
+        coordinador +
+        ".",
+        "correcto"
+      );
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
