@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
 <title>Control de Paradero</title>
-<!-- Panel V2.1: gestión de altas/bajas de coordinadores -->
+<!-- Panel V2.2: respuesta visual optimizada -->
 <style>
 *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f1f5f9;color:#0f172a}
 header{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:13px 14px;box-shadow:0 2px 8px #0003}
@@ -30,9 +30,15 @@ button{border:0;border-radius:11px;padding:12px 10px;font-weight:800;font-size:1
 .access{padding:10px 0;border-bottom:1px solid #e2e8f0}.access:last-child{border:0}.access b{display:block}.access small{color:#64748b}.access button{margin-top:7px;padding:8px 10px}
 .adminonly{display:none}.adminonly.show{display:block}
 .dragging{opacity:.45}.dragover{outline:2px dashed #2563eb;border-radius:10px}
+
+.processing{display:none;position:fixed;inset:0;z-index:80;background:#0f172a55;align-items:center;justify-content:center}
+.processing.show{display:flex}.processingBox{background:#fff;border-radius:14px;padding:15px 20px;font-weight:900;box-shadow:0 5px 20px #0004}
+.spinner{display:inline-block;width:17px;height:17px;border:3px solid #cbd5e1;border-top-color:#2563eb;border-radius:50%;vertical-align:-3px;margin-right:8px;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div id="processing" class="processing"><div class="processingBox"><span class="spinner"></span><span id="processingText">Procesando…</span></div></div>
 <header><div class="top"><div><div class="brand">🚐 CONTROL DE PARADERO</div><div class="who" id="who">Comprobando acceso…</div></div><div class="conn"><div><span id="dot" class="dot"></span><span id="conn">Conectando…</span></div><div id="updated">--</div></div></div></header>
 
 <main>
@@ -165,13 +171,19 @@ function actualizarAcciones(){
 }
 async function ejecutar(payload,ok){
  if(busy)return; busy=true;
+ mostrarProcesando("Procesando orden…");
  try{
   const r=await post({...payload,token});
   if(!r.ok){if(r.error==="NO_AUTORIZADO"){limpiar();location.reload();return}throw new Error(r.error||"Error")}
   if(r.data)estado=r.data; seleccion.clear(); render(); aviso(ok,"ok"); conexion(true,estado.actualizado);
  }catch(e){aviso("No se pudo completar: "+e.message,"err")}
- finally{busy=false}
+ finally{busy=false;ocultarProcesando()}
 }
+function mostrarProcesando(texto){
+ document.getElementById("processingText").textContent=texto||"Procesando…";
+ document.getElementById("processing").classList.add("show");
+}
+function ocultarProcesando(){document.getElementById("processing").classList.remove("show")}
 function abrirAgregar(){
  const activos=new Set([...estado.espera,...estado.paradero].map(x=>String(x.movil)));
  const disponibles=[];for(let i=1;i<=45;i++)if(!activos.has(String(i)))disponibles.push(i);
